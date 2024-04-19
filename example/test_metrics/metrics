@@ -1,0 +1,14 @@
+#!/bin/bash
+AUTHOR=$1
+DATE=`date +%s`
+export GH_TOKEN="${GITHUB_TOKEN}"
+
+FMT=$(
+      gh api -H "Accept: application/vnd.github+json" /repos/${GITHUB_REPO}/actions/runners --jq '.runners[]' | \
+      jq -c '.|{"name":.name,"os": .os, "status":.status, "tags":([(.labels[].name)]|join(",")) }' | \
+      jq -c '.|{"labels": . ,"value": "@@@@" }' | \
+      jq -Ss '.|{"name": "self_hosted_runners","values":.}' | \
+      sed -e 's/"@@@@"/1.0/g'
+    )
+
+printf "$FMT" "$AUTHOR" "$DATE"
